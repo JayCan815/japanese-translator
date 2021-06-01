@@ -4,6 +4,8 @@
 #include<string>
 using namespace std;
 
+
+//prototypes
 void afterStory();
 void afterSubject();
 void noun();
@@ -23,25 +25,13 @@ ofstream errors("errors.txt");
 string saved_E_word;
 ofstream output;
 
-/*
-Scanner part
-*/
 
 enum tokentype { VERB, VERBNEG, VERBPAST, VERBPASTNEG, IS, WAS, OBJECT, SUBJECT, DESTINATION, PRONOUN, CONNECTOR, EOFM, PERIOD, ERROR, WORD1, WORD2 };
 string tokenName[16] = { "VERB", "VERBNEG", "VERBPAST","VERBPASTNEG","IS","WAS","OBJECT","SUBJECT","DESTINATION","PRONOUN","CONNECTOR","EOFM","PERIOD","ERROR","WORD1","WORD2" };
 string reserved[19] = { "masu","masen","mashita","masendeshita","desu","deshita","o","wa","ni","watashi","anata","kanojo","kare","sore","mata","soshite","shikashi","dakara" };
 void scanner(tokentype&, string&);  // to be called by main
 fstream fin;   // file stream to use
-    // Done by: Jared Canonigo
-    /*
-    state -> state number based on submitted DFA in part 1.
-    q0 = 0 | qt = 1
-    qs = 2 |qc = 3
-    qsa = 4|qy = 5
-    q0q1 = 6| q0qy = 7
-    RE:(vowel | vowel n | consonant vowel | consonant vowel n |
-    consonant-pair vowel | consonant-pair vowel n)^+
-    */
+  
 bool WORD_token(string s) {
 
     int state = 0;
@@ -94,36 +84,28 @@ bool WORD_token(string s) {
         else return false;
         charpos++;
     }
-
     // What state did I end up in?
     if (state == 6 || state == 7) return true;
     else {
         return false;
     }
 }
-
-// done by: Adam Salinggih
     // RE: .
 bool period_token(string s) {
 
     if (s == ".") return true;
     else  return false;
 }
-
-
 // Scanner to be used in main to run through each DFA
-// Done by : Matthew Lee
 void scanner(tokentype & the_type, string & w)
 {
 
     fin >> w;
     cout << "Scanner called using word: " << w << endl;
-    // if w is eofm, break and set type.
     if (w == "eofm") {
         the_type = EOFM;
         return;
     }
-    // if token is recognized as word, check reserved word table
     else if (WORD_token(w)) {
         int idx = -1;
         // if word is reserved, save index for setting type.
@@ -132,7 +114,6 @@ void scanner(tokentype & the_type, string & w)
                 idx = i;
             }
         }
-
         // if not a reserved word, check if it is WORD1 or WORD2
         if (idx == -1) {
             if (w[w.size() - 1] == 'I' || w[w.size() - 1] == 'E') the_type = WORD2;
@@ -165,31 +146,12 @@ void scanner(tokentype & the_type, string & w)
 
 }
 
-/* INSTRUCTION:  Complete all ** parts.
-   You may use any method to connect this file to scanner.cpp
-   that you had written.
-  e.g. You can copy scanner.cpp here by:
-          cp ../ScannerFiles/scanner.cpp .
-       and then append the two files into one:
-          cat scanner.cpp parser.cpp > myparser.cpp
-*/
-
-//=================================================
-// File parser.cpp written by Group Number: 5
-//=================================================
-
-// ----- Four Utility Functions and Globals -----------------------------------
-
-// ** Need syntaxerror1 and syntaxerror2 functions (each takes 2 args)
-//    to display syntax error messages as specified by me.  
-
 
 tokentype saved_token;
 string saved_lexeme;
 bool token_available = false;
 
 // Type of error: matching fails
-// Done by: Jared Canonigo
 void syntaxerror1(tokentype saved, string lexeme) {
     if (trace == true)
         cout << "SYNTAX ERROR: expected " << tokenName[saved] << " but found " << lexeme << endl;
@@ -197,7 +159,6 @@ void syntaxerror1(tokentype saved, string lexeme) {
 
 }
 // Type of error: switch default
-// Done by: Jared Canonigo
 void syntaxerror2(string saved_lexeme, string parserfunction) {
     if (trace == true)
         cout << "SYNTAX ERROR: unexpected " << saved_lexeme << " found in " << parserfunction << endl;
@@ -205,11 +166,9 @@ void syntaxerror2(string saved_lexeme, string parserfunction) {
     exit(1);
 }
 
-// ** Need the updated match and next_token with 2 global vars
-// saved_token and saved_lexeme
+
 
 // Purpose: Allow parser to look ahead and update globals.
-// Done by: Matthew Lee
 tokentype next_token() {
     if (!token_available) {
         scanner(saved_token, saved_lexeme);
@@ -219,7 +178,6 @@ tokentype next_token() {
 }
 
 // Purpose: Matches non-terminals.
-// Done by: Matthew Lee.
 bool match(tokentype expected) {
     if (next_token() != expected)
     {
@@ -268,15 +226,6 @@ bool match(tokentype expected) {
 }
 
 // ----- RDP functions - one per non-term -------------------
-
-// ** Make each non-terminal into a function here
-// ** Be sure to put the corresponding grammar rule above each function
-// ** Be sure to put the name of the programmer above each function
-
-// Grammar: ** <s> ::= [CONNECTOR] <noun>...
-// Semantics: <s> ::=  [CONNECTOR #getEword# #gen(CONNECTOR)#] 
-// Done by: Matthew Lee
-
 void afterStory() {
     if (trace == true)
         cout << "Processing <s>" << endl;
@@ -301,8 +250,6 @@ void afterStory() {
 
 // Grammar: ** <noun> ::= WORD1 | PRONOUN 
 // Semantics: <noun> #getEword# [SUBJECT #gen(ACTOR)#]
-// Done by: Matthew Lee
-
 void noun() {
     if (trace == true)
         cout << "Processing <noun>" << endl;
@@ -335,8 +282,6 @@ void noun() {
 }
 
 // Grammar: ** <after subject> ::= <verb>... | <noun>...
-// Done by: Matthew Lee
-
 void afterSubject() {
     if (trace == true)
         cout << "Processing <afterSubject>" << endl;
@@ -356,8 +301,6 @@ void afterSubject() {
 
 // Grammar: ** <after noun> ::= <be>... | DESTINATION <verb>... | OBJECT <after object>
 // Semantics: DESTINATION #gen(TO)# ...| OBJECT #gen(OBJECT)# ...
-// Done by: Adam Salinggih
-
 void afterNoun() {
     if (trace == true)
         cout << "Processing <afterNoun>" << endl;
@@ -384,7 +327,6 @@ void afterNoun() {
 
 // Grammar: ** <verb> ::= WORD2
 // Semantics: <verb>   #getEword# #gen(ACTION)# 
-// Done by: Adam Salinggih
 
 void verb() {
     if (trace == true)
@@ -397,7 +339,6 @@ void verb() {
 }
 
 // Grammar: ** <after object> ::= <verb>... | <noun>...
-// Done by: Adam Salinggih
 
 void afterObject() {
     if (trace == true)
@@ -417,7 +358,6 @@ void afterObject() {
 
 // Grammar: ** <tense> ::= VERBPAST | VERBPASTNEG | VERB | VERBNEG
 // Semantics: <tense> #gen(TENSE)# PERIOD
-// Done by: Jared Canonigo
 
 void tense() {
     if (trace == true)
@@ -445,8 +385,6 @@ void tense() {
 
 // Grammar: ** <be> ::= IS | WAS
 // Semantics: <be> #gen(DESCRIPTION)# #gen(TENSE)# PERIOD
-// Done by: Jared Canonigo
-
 void be() {
     if (trace == true)
         cout << "Processing <be>" << endl;
@@ -466,25 +404,8 @@ void be() {
     match(PERIOD);
 }
 string filename;
-
-
-/* INSTRUCTION:  copy your parser.cpp here
-      cp ../ParserFiles/parser.cpp .
-   Then, insert or append its contents into this file and edit.
-   Complete all ** parts.
-*/
-
-//=================================================
-// File translator.cpp written by Group Number: ** 5
-//=================================================
-
-// ----- Additions to the parser.cpp ---------------------
-
-// ** Declare Lexicon (i.e. dictionary) that will hold the content of lexicon.txt
-// Make sure it is easy and fast to look up the translation.
-// Do not change the format or content of lexicon.txt 
-//  Done by: Adam Salinggih
 string table[48][2];
+
 void dictionary() {
     fstream fin;
     int i = 0;
@@ -503,12 +424,9 @@ void dictionary() {
 }
 
 
-// ** Additions to parser.cpp here:
 //    getEword() - using the current saved_lexeme, look up the English word
 //                 in Lexicon if it is there -- save the result   
 //                 in saved_E_word
-//  Done by: Jared Canonigo 
-
 void getEword() {
     for (int i = 0; i < 48; i++) {
         if (table[i][0] == saved_lexeme) {
@@ -523,8 +441,6 @@ void getEword() {
 //    gen(line_type) - using the line type,
 //                     sends a line of an IR to translated.txt
 //                     (saved_E_word or saved_token is used)
-//  Done by: Matthew Lee
-
 void gen(string line_type) {
     if (line_type == "CONNECTOR") {
         output << "CONNECTOR: " << saved_E_word << endl;
@@ -560,9 +476,7 @@ void outputTranslation() {
     }
     translated.close();
 }
-// ----- Changes to the parser.cpp content ---------------------
 
-// ** Comment update: Be sure to put the corresponding grammar 
 //    rule with semantic routine calls
 //    above each non-terminal function 
 
@@ -571,10 +485,7 @@ void outputTranslation() {
 
 
 // ---------------- Driver ---------------------------
-
 // The final test driver to start the translator
-// Done by:  Adam Salinggih
-
 int main()
 {
     //** opens the lexicon.txt file and reads it into Lexicon
@@ -587,8 +498,6 @@ int main()
     cout << "Enter the input file name: ";
     getline(cin, filename);
     cin.clear();
-
-
     // Ask user if toggle tracings on or off
     cout << "Do you want tracings enabled for this file? Y/n ";
     string pref;
@@ -639,8 +548,5 @@ int main()
     errors.close();
     output.close();
 }// end
-//** require no other input files!
-//** syntax error EC requires producing errors.txt of error messages
-//** tracing On/Off EC requires sending a flag to trace message output functions
 
 
